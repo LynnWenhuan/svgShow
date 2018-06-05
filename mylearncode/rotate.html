@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>rotate</title>
+  <style>
+    html, body, svg {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <svg viewBox='-150 -150 300 300' >
+    <rect x='0' y='0' width='50' height='50' fill='red' >
+      <!--
+        repeatCount='indefinite' 无限重复
+        repeatCount='2' 循环两次
+        animateTransform 不能针对同一元素进行多个进行嵌套
+      -->
+      <animateTransform
+        id='rotate'
+        attributeType='XML'
+        attributeName='transform'
+        type='rotate'
+        form='0'
+        to='360'
+        dur='2s'
+        fill='freeze'
+      >
+      <animateTransform
+        id='scale'
+        attributeType='XML'
+        attributeName='transform'
+        type='scale'
+        form='1'
+        to='2'
+        dur='2s'
+        fill='freeze'
+      >
+      </animate>
+      <!--<animate
+        id='goLeft'
+        attributeType='XML'
+        attributeName='x'
+        begin='goRight.end + 1s'
+        form='200'
+        to='50'
+        dur='2s'
+        fill='freeze'
+      />-->
+
+    </rect>
+  </svg>
+</body>
+</html>

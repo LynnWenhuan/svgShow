@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    .html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+    #svg1, #svg2, #svg3, #svg4 {
+      width: 100px;
+      height: 100px; 
+    }
+  </style>
+</head>
+
+<body>
+  <div id='svg1' ></div>
+  <div id='svg2' ></div>
+  <div id='svg3' ></div>
+  <div id='svg4' ></div>
+</body>
+<script src='http://op9v54r0i.bkt.clouddn.com/vector.js'></script>
+<script>
+  var pointStart = function (svgName, inputPoint) {
+    if (!inputPoint || !svgName) {
+      console.log('缺少必要的参数');
+      return;
+    }
+    var points = inputPoint.split(',').map(function (name, index, arr) {
+      return {
+        name: name,
+        color: 'hsl(' + (360 * index / arr.length) + ', 90%, 60%)'
+      }
+    });
+    var relation = 100;
+    var k = 0.05;
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 512 512');
+    svg.setAttribute('width', '512px');
+    svg.setAttribute('height', '512px');
+    var putSvg = document.getElementById(svgName);
+    putSvg.appendChild(svg);
+    var Vector = window.Vector;
+    function random(min, max) {
+      return Math.round(min + (max - min) * Math.random());
+    }
+    points.forEach(function (point) {
+      var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      var x = random(10, 400);
+      var y = random(10, 400);
+      circle.setAttribute('cx', x);
+      circle.setAttribute('cy', y);
+      circle.setAttribute('r', 10);
+      circle.setAttribute('fill', point.color);
+      svg.appendChild(circle);
+      point.circle = circle;
+      point.s = new Vector(x, y);
+      point.v = new Vector();
+      point.a = new Vector();
+    })
+    var lastFrameTime = +new Date();
+    var startTime = new Date();
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('stroke', 'gray')
+    svg.appendChild(path);
+    function update() {
+      var frameTime = +new Date();
+      var t = frameTime - lastFrameTime;
+      t < 100 ? t /= 100 : t = 0.35;
+      // 点位置的更新
+      points.forEach(function (pa) {
+        var f = new Vector();
+        // 计算两点之间的合力
+        points.forEach(function (pb) {
+          if (pa == pb) {
+            return
+          } else {
+            var x = Vector.fromPoints(pa.s, pb.s);
+            var delta = x.length() - relation;
+            f = f.add(x.normalize(delta * k))
+          }
+        });
+        pa.a = f;
+        pa.v = pa.v.add(pa.a.multipy(t)).multipy(0.98);
+        pa.s = pa.s.add(pa.v.multipy(t));
+        pa.circle.setAttribute('cx', pa.s.x);
+        pa.circle.setAttribute('cy', pa.s.y);
+
+      });
+      // 连线更新
+      var linkPath = [];
+
+      points.forEach(function (pa) {
+        var sa = pa.s;
+        points.forEach(function (pb) {
+          if (pa == pb) {
+            return;
+          } else {
+            var sb = pb.s;
+            linkPath = linkPath.concat([
+              'M', sa.x, sa.y,
+              'L', sb.x, sb.y
+            ]);
+          }
+        });
+      });
+      path.setAttribute('d', linkPath.join(' '));
+      lastFrameTime = frameTime;
+      if (lastFrameTime - startTime > 5000) { // 5秒内，动画持续
+        window.cancelAnimationFrame(tttt)
+        console.log(tttt);
+      } else {
+        window.requestAnimationFrame(update);
+      }
+    }
+    var tttt = window.requestAnimationFrame(update);
+  }
+  pointStart('svg1', 'a,b,c');
+  pointStart('svg2', 'a,b,c,d');
+  pointStart('svg3', 'a,b,c,d,e');
+  pointStart('svg4', 'a,b,c,d,e,f');
+
+</script>
+
+</html>

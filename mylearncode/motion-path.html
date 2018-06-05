@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>rotate</title>
+  <style>
+    html,
+    body,
+    svg {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <svg viewBox='-100 -100 300 300'>
+    <rect x='-25' y='-25' width='50' height='50' fill='rgba(0, 255, 255 .6)'>
+      <!--
+        rotate='auto' 调整图形自身，进行方向前进
+        path='M 0 0L 50 50A 100 100 0 1 0 0 -120' = <mpath />
+      -->
+      <animateMotion
+        dur='3s'
+        rotate='auto'
+        repeatCount='2'
+      >
+        <mpath xlink:href='#motion-path'></mpath>
+      </animateMotion>
+    </rect>
+    <path
+      id='motion-path'
+      d='M 0 0L 50 50A 100 100 0 1 0 0 -120'
+      stroke='red'
+      fill='none'
+    ></path>
+  </svg>
+</body>
+
+</html>
