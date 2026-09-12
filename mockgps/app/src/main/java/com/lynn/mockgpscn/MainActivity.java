@@ -20,6 +20,7 @@ public class MainActivity extends Activity {
     private EditText latInput;
     private EditText lonInput;
     private TextView status;
+    private TextView diag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +38,11 @@ public class MainActivity extends Activity {
         status = new TextView(this);
         status.setText("状态：未启动");
         root.addView(status);
+
+        diag = new TextView(this);
+        diag.setText("诊断：暂无");
+        diag.setTextSize(12f);
+        root.addView(diag);
 
         WebView map = new WebView(this);
         map.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
@@ -75,12 +81,24 @@ public class MainActivity extends Activity {
         stop.setOnClickListener(v -> {
             stopService(new Intent(this, MockLocationService.class));
             status.setText("状态：已停止");
+            refreshDiag();
         });
         buttons.addView(stop, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
         root.addView(buttons);
         setContentView(root);
         requestPermissionsIfNeeded();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshDiag();
+    }
+
+    private void refreshDiag() {
+        String msg = getSharedPreferences("mockgps", MODE_PRIVATE).getString("last_diag", "暂无");
+        diag.setText("诊断：" + msg);
     }
 
     private void requestPermissionsIfNeeded() {
@@ -100,7 +118,8 @@ public class MainActivity extends Activity {
             i.putExtra("lat", lat);
             i.putExtra("lon", lon);
             if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i);
-            status.setText("状态：模拟中  " + lat + ", " + lon);
+            status.setText("状态：正在启动  " + lat + ", " + lon);
+            diag.postDelayed(this::refreshDiag, 800);
         } catch (Exception e) {
             Toast.makeText(this, "请输入正确的经纬度", Toast.LENGTH_SHORT).show();
         }
