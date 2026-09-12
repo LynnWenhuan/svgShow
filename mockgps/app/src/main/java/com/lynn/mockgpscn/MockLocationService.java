@@ -23,6 +23,7 @@ import java.util.List;
 
 public class MockLocationService extends Service {
     private static final String CHANNEL_ID = "mockgps";
+    private static final String FUSED_PROVIDER_NAME = "fused";
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final List<String> mockProviders = new ArrayList<>();
     private final List<String> providerErrors = new ArrayList<>();
@@ -53,21 +54,22 @@ public class MockLocationService extends Service {
 
         int mockMode = getMockLocationMode();
         if (mockMode != AppOpsManager.MODE_ALLOWED) {
-            failAndStop("Mock Location 未授权，AppOp=" + mockMode + "。请重新在开发者选项中选择 Mock GPS CN");
+            failAndStop("SDK=" + Build.VERSION.SDK_INT + "；Mock Location 未授权，AppOp=" + mockMode + "。请重新在开发者选项中选择 Mock GPS CN");
             return;
         }
 
         setupProvider(LocationManager.GPS_PROVIDER, false, true, false);
         setupProvider(LocationManager.NETWORK_PROVIDER, true, false, true);
-        if (Build.VERSION.SDK_INT >= 31) {
-            setupProvider(LocationManager.FUSED_PROVIDER, true, false, true);
-        }
+        // Older Android releases may still expose an internal provider named "fused"
+        // even though LocationManager.FUSED_PROVIDER became public only in API 31.
+        setupProvider(FUSED_PROVIDER_NAME, true, false, true);
 
         if (mockProviders.isEmpty()) {
             String detail = providerErrors.isEmpty() ? "未知错误" : join(providerErrors);
-            failAndStop("Provider 注册失败：" + detail);
+            failAndStop("SDK=" + Build.VERSION.SDK_INT + "；Provider 注册失败：" + detail);
         } else {
-            saveDiag("Mock AppOp=ALLOWED；已注册 Provider：" + join(mockProviders));
+            saveDiag("SDK=" + Build.VERSION.SDK_INT + "；Mock AppOp=ALLOWED；已注册 Provider：" + join(mockProviders)
+                    + (providerErrors.isEmpty() ? "" : "；失败：" + join(providerErrors)));
             updateNotification("已注册：" + join(mockProviders));
         }
     }
@@ -137,7 +139,7 @@ public class MockLocationService extends Service {
     private boolean pushLocations() {
         if (mockProviders.isEmpty()) return false;
 
-        int successCount = 0;
+        List<String> successProviders = new ArrayList<>();
         List<String> pushErrors = new ArrayList<>();
         for (String provider : new ArrayList<>(mockProviders)) {
             try {
@@ -151,20 +153,22 @@ public class MockLocationService extends Service {
                 location.setTime(System.currentTimeMillis());
                 location.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
                 lm.setTestProviderLocation(provider, location);
-                successCount++;
+                successProviders.add(provider);
             } catch (Exception e) {
                 pushErrors.add(provider + ":" + e.getClass().getSimpleName() + ":" + safeMessage(e));
             }
         }
 
-        if (successCount == 0) {
-            failAndStop("位置注入失败：" + join(pushErrors));
+        if (successProviders.isEmpty()) {
+            failAndStop("SDK=" + Build.VERSION.SDK_INT + "；位置注入失败：" + join(pushErrors));
             return false;
         }
 
-        String ok = "模拟已生效 " + lat + ", " + lon + "；成功 Provider=" + successCount;
+        String ok = "SDK=" + Build.VERSION.SDK_INT + "；模拟已生效 " + lat + ", " + lon
+                + "；成功 Provider=" + join(successProviders)
+                + (pushErrors.isEmpty() ? "" : "；注入失败=" + join(pushErrors));
         saveDiag(ok);
-        updateNotification(ok);
+        updateNotification("模拟中：" + join(successProviders));
         return true;
     }
 
