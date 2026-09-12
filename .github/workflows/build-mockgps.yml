@@ -7,6 +7,10 @@ on:
     paths:
       - 'mockgps/**'
       - '.github/workflows/build-mockgps.yml'
+  pull_request:
+    paths:
+      - 'mockgps/**'
+      - '.github/workflows/build-mockgps.yml'
   workflow_dispatch:
 
 jobs:
